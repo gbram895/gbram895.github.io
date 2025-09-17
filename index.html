@@ -43,10 +43,10 @@ export default function App() {
   }
 
   if (hasPermission === null) {
-    return <Text>Vraag toestemming voor camera...</Text>;
+    return <View style={styles.container}><Text>Vraag toestemming voor camera...</Text></View>;
   }
   if (hasPermission === false) {
-    return <Text>Geen toegang tot camera</Text>;
+    return <View style={styles.container}><Text>Geen toegang tot camera</Text></View>;
   }
 
   if (scanning) {
