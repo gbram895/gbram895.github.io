@@ -37,7 +37,9 @@ small { color: gray; }
 <ul id="stockList"></ul>
 <script>
 let stock = JSON.parse(localStorage.getItem('freezer_stock') || '[]');
+
 function saveStock() { localStorage.setItem('freezer_stock', JSON.stringify(stock)); }
+
 function renderStock() {
     const list = document.getElementById('stockList');
     list.innerHTML = '';
@@ -53,6 +55,7 @@ function renderStock() {
         list.appendChild(li);
     });
 }
+
 function addProduct() {
     const name = document.getElementById('productName').value.trim();
     const expiry = document.getElementById('expiryDate').value;
@@ -66,9 +69,11 @@ function addProduct() {
     saveStock();
     renderStock();
 }
+
 function increase(index){ stock[index].qty++; saveStock(); renderStock(); }
 function decrease(index){ stock[index].qty--; if(stock[index].qty<=0) stock.splice(index,1); saveStock(); renderStock(); }
 function remove(index){ stock.splice(index,1); saveStock(); renderStock(); }
+
 function exportStock() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stock));
     const dlAnchor = document.createElement('a');
@@ -76,6 +81,7 @@ function exportStock() {
     dlAnchor.setAttribute('download','voorraad.json');
     dlAnchor.click();
 }
+
 function importStock(event){
     const file = event.target.files[0];
     if(!file) return;
@@ -88,6 +94,7 @@ function importStock(event){
     };
     reader.readAsText(file);
 }
+
 renderStock();
 </script>
 </body>
