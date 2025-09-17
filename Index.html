@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diepvries Voorraad</title>
+<link rel="manifest" href="manifest.json">
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f7f7f7; }
+h1 { text-align: center; }
+input, button, select { padding: 6px; margin: 4px 0; border-radius: 5px; border: 1px solid #ccc; }
+button { background-color: #007BFF; color: white; border: none; }
+ul { list-style: none; padding: 0; }
+li { background: white; margin: 6px 0; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+small { color: gray; }
+</style>
+</head>
+<body>
+<h1>Diepvries Voorraad</h1>
+<div>
+  <input type="text" id="productName" placeholder="Product naam">
+  <input type="date" id="expiryDate">
+  <select id="category">
+    <option value="">Categorie</option>
+    <option value="Vlees">Vlees</option>
+    <option value="Groenten">Groenten</option>
+    <option value="Brood">Brood</option>
+    <option value="Dessert">Dessert</option>
+    <option value="Overig">Overig</option>
+  </select>
+  <button onclick="addProduct()">Toevoegen</button>
+</div>
+<div style="margin:10px 0;">
+  <button onclick="exportStock()">Exporteren</button>
+  <input type="file" id="importFile" onchange="importStock(event)">
+</div>
+<ul id="stockList"></ul>
+<script>
+let stock = JSON.parse(localStorage.getItem('freezer_stock') || '[]');
+function saveStock() { localStorage.setItem('freezer_stock', JSON.stringify(stock)); }
+function renderStock() {
+    const list = document.getElementById('stockList');
+    list.innerHTML = '';
+    stock.forEach((item,index)=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<div><strong>${item.name}</strong> (${item.qty})<br>
+                        <small>${item.category || 'Onbekend'} - Vervalt: ${item.expiry || 'Onbekend'}</small></div>
+                        <div>
+                        <button onclick='decrease(${index})'>-1</button>
+                        <button onclick='increase(${index})'>+1</button>
+                        <button onclick='remove(${index})'>🗑️</button>
+                        </div>`;
+        list.appendChild(li);
+    });
+}
+function addProduct() {
+    const name = document.getElementById('productName').value.trim();
+    const expiry = document.getElementById('expiryDate').value;
+    const category = document.getElementById('category').value;
+    if (!name) return;
+    const existing = stock.find(p => p.name.toLowerCase() === name.toLowerCase() && p.expiry === expiry);
+    if (existing) { existing.qty++; } else { stock.push({name, qty:1, expiry, category}); }
+    document.getElementById('productName').value = '';
+    document.getElementById('expiryDate').value = '';
+    document.getElementById('category').value = '';
+    saveStock();
+    renderStock();
+}
+function increase(index){ stock[index].qty++; saveStock(); renderStock(); }
+function decrease(index){ stock[index].qty--; if(stock[index].qty<=0) stock.splice(index,1); saveStock(); renderStock(); }
+function remove(index){ stock.splice(index,1); saveStock(); renderStock(); }
+function exportStock() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stock));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download','voorraad.json');
+    dlAnchor.click();
+}
+function importStock(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if(Array.isArray(imported)){ stock = imported; saveStock(); renderStock(); } else { alert("Ongeldig bestand"); }
+        } catch(err){ alert("Kan bestand niet lezen"); }
+    };
+    reader.readAsText(file);
+}
+renderStock();
+</script>
+</body>
+</html>
